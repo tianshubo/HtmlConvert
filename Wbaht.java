@@ -2,6 +2,11 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Properties;
 
 public class Wbaht {
 	
@@ -17,7 +22,7 @@ public class Wbaht {
 	           + "		<meta charset=\"GBK\">\n"
 	           + "	</head>\n"
 	           + "	<body>\n";
-	protected static String INDEX_TAIL = "	 </body>\n" + "</html>";
+	protected static String INDEX_TAIL = "	 </body>" + "</html>";
 
 	
 	public static void convertHtml(String infileName) throws Exception{
@@ -30,14 +35,17 @@ public class Wbaht {
 		log.write(s);
 	}
 	
+	
+	
 	public static void listDir(String pathName) throws Exception{
-		File file = new File(pathName);
-		File indexFile = new File(pathName + "/index.html");
+		
 		BufferedWriter fp = null;
-		fp = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(indexFile), "gbk"));
+		File file = new File(pathName);
 		String contentStr = INDEX_HEADER;
+		File indexFile = new File(pathName + "/index.html");
+		fp = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(indexFile), "gbk"));
 		contentStr += "        <h1>Index of /"+ file.getName() + "</h1><hr>\n";
-		if (pathName != rootDirectory)
+		if (pathName.compareTo(rootDirectory) != 0)
 	        contentStr += "        <a href=\"../index.html\">../</a><br>\n";
         if (file.exists()) {
             File[] files = file.listFiles();
@@ -45,7 +53,22 @@ public class Wbaht {
                 return;
             } 
             else {
-                for (File file2 : files) {
+            	List<File> fileList = new ArrayList<File>();
+            	for (File file2 : files) 
+            		fileList.add(file2);
+            	Collections.sort(fileList, new Comparator<File>(){
+            	
+					@Override
+					public int compare(File file1, File file2) {
+						// TODO Auto-generated method stub
+						if (file1.isDirectory() && file2.isFile())
+            	            return -1;
+            	        if (file1.isFile() && file2.isDirectory())
+            	            return 1;
+            	        return file1.getName().compareTo(file2.getName());
+					}
+            	});
+                for (File file2 : fileList) {
                 	
                     if (file2.isDirectory()) {
                     	contentStr += "        <a href=\""+ file2.getName() +"/index.html\">"
@@ -105,7 +128,5 @@ public class Wbaht {
 		long endTime =  System.currentTimeMillis();
 		long usedTime = (endTime-startTime)/1000;
 		System.out.println("execution time: " + usedTime + "s");
-
 	}
-
 }
